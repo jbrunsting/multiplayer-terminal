@@ -1,22 +1,20 @@
-#!/usr/bin/env python
-
-# WS server example
-
 import asyncio
 import websockets
+from chat.main import connect as connectToChat
 
+async def main(websocket, path):
+    pathComponents = path.split('/')
 
-async def hello(websocket, path):
-    name = await websocket.recv()
-    print(f"< {name}")
+    if len(pathComponents) == 1:
+        return
 
-    greeting = f"Hello {name}!"
+    root = pathComponents[1]
+    if root == "chat":
+        name = await websocket.recv()
+        await connectToChat(websocket, path)
+        return
 
-    await websocket.send(greeting)
-    print(f"> {greeting}")
-
-
-start_server = websockets.serve(hello, 'localhost', 8765)
+start_server = websockets.serve(main, "localhost", 8765)
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
