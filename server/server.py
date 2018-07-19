@@ -10,7 +10,6 @@ async def main(websocket, path):
 
     root = pathComponents[1]
     if root == "chat":
-        name = await websocket.recv()
         await connectToChat(websocket, path)
         return
 
