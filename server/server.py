@@ -1,6 +1,7 @@
 import asyncio
 import websockets
-from chat.main import connect as connectToChat
+from chat.main import connect as connectToChat, sendMessage as sendChatMessage
+
 
 async def main(websocket, path):
     pathComponents = path.split('/')
@@ -10,8 +11,13 @@ async def main(websocket, path):
 
     root = pathComponents[1]
     if root == "chat":
-        await connectToChat(websocket, path)
+        chatName = await websocket.recv()
+        await connectToChat(websocket, chatName)
+        while True:
+            message = await websocket.recv()
+            sendChatMessage(chatName, message)
         return
+
 
 start_server = websockets.serve(main, "localhost", 8765)
 
