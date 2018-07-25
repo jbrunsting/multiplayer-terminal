@@ -24,12 +24,12 @@ async def sendMessage(chatName, message):
     chats[chatName].addMessage(message)
 
 
-async def getMessageCallback(websocket, chat):
-    async def messageCallback(message, callbackId):
-        if chatName in chats:
-            try:
-                await websockets.send(message)
-            except:
-                chats[chatName].removeMessageListener(callbackId)
+def getMessageCallback(websocket, chat):
+    async def messageCallback(callbackId, message):
+        try:
+            await websocket.send(message)
+        except Exception as e:
+            print(e)
+            chat.removeMessageListener(callbackId)
 
     return messageCallback

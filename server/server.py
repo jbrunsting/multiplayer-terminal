@@ -15,8 +15,7 @@ async def main(websocket, path):
         await connectToChat(websocket, chatName)
         while True:
             message = await websocket.recv()
-            sendChatMessage(chatName, message)
-        return
+            await sendChatMessage(chatName, message)
 
 
 start_server = websockets.serve(main, "localhost", 8765)

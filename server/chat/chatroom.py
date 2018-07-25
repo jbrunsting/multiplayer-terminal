@@ -1,4 +1,5 @@
 import threading
+import asyncio
 from datetime import datetime
 
 MAX_MESSAGES = 100
@@ -23,8 +24,11 @@ class ChatRoom:
             self.messages.append(message)
             if len(self.messages) > MAX_MESSAGES:
                 del self.messages[:len(self.messages) - MAX_MESSAGES]
+
+            futures = []
             for listenerId, callback in self.messageListeners.items():
-                callback(listenerId, message)
+                futures.append(asyncio.Task(callback(listenerId, message)))
+            asyncio.wait(futures, return_when=asyncio.ALL_COMPLETED)
 
     def addMessageListener(self, listener):
         with self.lock:
@@ -34,4 +38,4 @@ class ChatRoom:
 
     def removeMessageListener(self, listenerId):
         with self.lock:
-            del self.messages[listenerId]
+            del self.messageListeners[listenerId]

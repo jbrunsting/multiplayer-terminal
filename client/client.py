@@ -2,8 +2,7 @@
 
 # WS client example
 
-import asyncio
-import websockets
+import websocket
 import signal
 import sys
 import curses
@@ -16,21 +15,18 @@ def main(stdscr):
     curses.cbreak()
     stdscr.keypad(True)
     chatScreen = ChatScreen(stdscr)
-    asyncio.get_event_loop().run_until_complete(chat(chatScreen))
+    chat(chatScreen)
 
-async def chat(chatScreen):
-    async with websockets.connect("ws://localhost:8765/chat") as websocket:
-        name = await chatScreen.get_input("Chat name: ")
-        await websocket.send(name)
-        response = await websocket.recv()
-        chatScreen.add_message(response)
-        while True:
-            inputFuture = asyncio.ensure_future(chatScreen.get_input("> "))
-            messageFuture = asyncio.ensure_future(websocket.recv())
-            finished, unfinished = await asyncio.wait([inputFuture, messageFuture], return_when=asyncio.FIRST_COMPLETED)
-            if inputFuture in finished:
-                await websocket.send(inputFuture.result())
-            else:
-                chatScreen.add_message(messageFuture.result())
+def chat(chatScreen):
+    ws = websocket.create_connection("ws://localhost:8765/chat")
+    def on_input(message):
+        chatScreen.set_prompt("...")
+        ws.send(message)
+        chatScreen.set_prompt("> ")
+    chatScreen.accept_input("Chat name: ", on_input)
+    while True:
+        message = ws.recv()
+        chatScreen.add_message(message)
+    ws.close()
 
 curses.wrapper(main)
